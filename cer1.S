@@ -3,6 +3,7 @@
 	m: .space 4
 	p: .space 4
 	k: .space 4
+	aux: .space 4
 	count: .long 0
 	col_vecini: .space 4
 	lin_vecini: .space 4
@@ -90,7 +91,8 @@ et_afisare:
 	pushl %ebx
 	pushl afisEvolutie
 	call printf
-	addl $8, %esp
+	popl %ebx
+	popl %ebx
 
 	pushl $0
 	call fflush
@@ -113,7 +115,7 @@ et_afisare:
 		movl linie, %eax
 		mull n
 		addl coloana, %eax
-		lea matrix, %edi
+		lea vecini, %edi
 		movl (%edi, %eax, 4), %ebx
 
 		#afisam pe ecran elementul matrix[linie][coloana]
@@ -160,31 +162,61 @@ et_evolutie:
 		cmp %ecx, n
 		jb et_vecini_cont
 
-			movl linie, %eax
-			add $1, %eax
-			movl %eax, lin_vecini
-			sub $2, %eax
+			movl linie, %ecx
+			add $1, %ecx
+			movl %ecx, lin_vecini
+			sub $2, %ecx
+
 			for_linie_vecini:
-			cmp %eax, lin_vecini
+			cmp %ecx, lin_vecini
 			jb et_afisare_vecini
 
 				movl coloana, %ebx
 				add $1, %ebx
 				movl %ebx, col_vecini
 				sub $2, %ebx
+
 				for_coloana_vecini:
 				cmp %ebx, col_vecini
 				jb for_linie_vecini_cont
 
 				#adunare vecini la elem
-				#eax linie vecin, ebx coloana vecin
+				#ecx linie vecin, ebx coloana vecin
+				#linie/coloana e linia/coloana la care vrem sa calc vecinii
 				
+				#adunam in matrix[lin][col] toti vecinii de pe 3x3 in afara de el
+				cmp %ecx, linie
+				jne et_vecini_adunare
+				cmp %ebx, coloana
+				je et_vecini_neadunare
+
+				et_vecini_adunare:
+
+				movl %ecx, aux
+
+				#salvam in ecx acum valoarea unui vecin al elem din matrix
+				#desi refolosim un registru care retinea linia vecinului am zis sa nu ma joc
+				#cu alti registrii si sa stric ceva
+
+				xor %edx, %edx
+				movl %ecx, %eax
+				mull n
+				addl %ebx, %eax
+				lea matrix, %edi
+				movl (%edi, %eax, 4), %ecx
+
+				#adunam valoarea vecinului la vecini[lin][col] (0 nu influenteaza)
+
 				xor %edx, %edx
 				movl linie, %eax
 				mull n
 				addl coloana, %eax
-				lea matrix, %edi
-				movl (%edi, %eax, 4), %ecx
+				lea vecini, %edi
+				addl %ecx, (%edi, %eax, 4)
+
+				movl aux, %ecx
+
+				et_vecini_neadunare:
 
 				incl %ebx
 				jmp for_coloana_vecini
@@ -215,7 +247,7 @@ et_evolutie:
 		popl %ebx
 
 		incl coloana
-		jmp for_coloana_matrix
+		jmp for_coloana_vecini
 
 	et_vecini_cont:
 		movl $4, %eax
@@ -234,7 +266,7 @@ et_evolutie:
 
 
 	#Afisam evolutia
-	#jmp et_afisare
+	jmp et_afisare
 
 et_evo_cont:
 	movl $4, %eax
