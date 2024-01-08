@@ -14,8 +14,8 @@
 	coloana: .long 0
 	matrix: .fill 400, 4, 0
 	vecini: .fill 400, 4, 0
-	fisierIn: .asciz "input1.txt"
-	fisierOut: .asciz "output.txt"
+	fisierIn: .asciz "in.txt"
+	fisierOut: .asciz "out.txt"
 	modeIn: .asciz "r"
 	modeOut: .asciz "w"
 	formatString: .asciz "%d"
